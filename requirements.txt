@@ -1,0 +1,5 @@
+# Nur für die experimentellen Pairing-/Scan-Skripte nötig.
+# Signieren und Installieren (install_kodi.sh) brauchen kein Python.
+pymobiledevice3==11.12.1
+pycryptodome==3.23.0
+cryptography==50.0.1

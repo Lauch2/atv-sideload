@@ -1,0 +1,41 @@
+# ---- Zugangsdaten & Gerätegeheimnisse (NIE committen) ----
+config.env
+.env
+keys/
+*.pem
+rp_pairing_file.plist
+pin.txt
+embedded.mobileprovision
+data/
+
+# ---- Virtuelle Umgebung / Toolchain ----
+bin/
+lib/
+lib64
+include/
+share/
+pyvenv.cfg
+rustup/
+cargo/
+
+# ---- Große Binärartefakte (gehören nicht ins Repo) ----
+*.ipa
+*.deb
+*.dylib
+*.tar.gz
+*.zip
+kodi-deb-extract/
+kodi-ipa-stage/
+tmp/
+out/
+orig/
+conv_*/
+
+# ---- Logs ----
+*.log
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
