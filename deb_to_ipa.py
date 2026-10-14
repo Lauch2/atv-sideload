@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Konvertiert ein Kodi-tvOS-.deb in eine .ipa (arbeitet im Repo-Verzeichnis).
+"""Convert a tvOS .deb to a .ipa (works in repo directory).
 
-Nutzung:
-    python3 deb_to_ipa.py [pfad/zum/kodi-tvos.deb] [-o ausgabe.ipa]
+Usage:
+    python3 deb_to_ipa.py [path/to/app-tvos.deb] [-o output.ipa]
 """
 import argparse
 import io
@@ -18,10 +18,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from atvconfig import WORKDIR  # noqa: E402
 
-SRC = WORKDIR / "kodi-deb-extract"
-STAGE = WORKDIR / "kodi-ipa-stage"
-DEB = Path(os.environ.get("KODI_DEB", "/tmp/kodi-21.3-tvos.deb"))
-DST = WORKDIR / "kodi-tvos.ipa"
+SRC = WORKDIR / "app-deb-extract"
+STAGE = WORKDIR / "app-ipa-stage"
+DEB = Path(os.environ.get("APP_DEB", "/tmp/app-tvos.deb"))
+DST = WORKDIR / "app-tvos.ipa"
 
 
 def extract_deb():
@@ -30,12 +30,12 @@ def extract_deb():
     os.makedirs(SRC, exist_ok=True)
 
     if not DEB.exists():
-        sys.exit(f"FEHLER: {DEB} nicht gefunden (Pfad per KODI_DEB oder Argument setzen)")
+        sys.exit(f"ERROR: {DEB} not found (set APP_DEB env var or pass as argument)")
 
     with open(DEB, "rb") as f:
         data = f.read()
 
-    # ar-Archiv parsen
+    # Parse ar archive
     pos = 8  # "!<arch>\n"
     members = []
     while pos + 60 <= len(data):
@@ -53,10 +53,10 @@ def extract_deb():
     for name, start, size in members:
         if name.startswith("data.tar"):
             data_member = data[start : start + size]
-            print(f"[*] data-Member: {name} ({size} Bytes)")
+            print(f"[*] data member: {name} ({size} bytes)")
             break
     if data_member is None:
-        print("FEHLER: kein data.tar im .deb")
+        print("ERROR: no data.tar in .deb")
         sys.exit(1)
 
     if data_member[:6] == b"\xfd7zXZ\x00":
@@ -66,7 +66,7 @@ def extract_deb():
 
     with tarfile.open(fileobj=io.BytesIO(raw)) as tf:
         tf.extractall(SRC)
-    print("[*] .deb extrahiert nach", SRC)
+    print("[*] .deb extracted to", SRC)
 
 
 def build_ipa():
@@ -82,24 +82,24 @@ def build_ipa():
                 if d.endswith(".app"):
                     matches.append(os.path.join(root, d))
         if not matches:
-            print("FEHLER: keine .app gefunden")
+            print("ERROR: no .app found")
             sys.exit(1)
         src_app = matches[0]
     else:
         apps = os.listdir(apps_dir)
-        print("Apps im .deb:", apps)
+        print("Apps in .deb:", apps)
         src_app = os.path.join(apps_dir, apps[0])
 
     app_name = os.path.basename(src_app)
     dst_app = os.path.join(STAGE, "Payload", app_name)
-    print(f"[*] Kopiere {src_app} -> {dst_app}")
+    print(f"[*] Copy {src_app} -> {dst_app}")
     shutil.copytree(src_app, dst_app, symlinks=True)
 
     if not os.path.exists(os.path.join(dst_app, "Info.plist")):
-        print("FEHLER: keine Info.plist")
+        print("ERROR: no Info.plist")
         sys.exit(1)
 
-    print("[*] Packe IPA...")
+    print("[*] Packing IPA...")
     cwd = os.getcwd()
     os.chdir(STAGE)
     try:
@@ -108,13 +108,13 @@ def build_ipa():
         os.chdir(cwd)
 
     size = os.path.getsize(DST) / 1024 / 1024
-    print(f"[+] IPA erstellt: {DST} ({size:.1f} MB)")
+    print(f"[+] IPA created: {DST} ({size:.1f} MB)")
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="Kodi-tvOS-.deb -> .ipa")
-    ap.add_argument("deb", nargs="?", type=Path, default=DEB, help="Pfad zum .deb")
-    ap.add_argument("-o", "--out", type=Path, default=DST, help="Ziel-.ipa")
+    ap = argparse.ArgumentParser(description="tvOS .deb -> .ipa")
+    ap.add_argument("deb", nargs="?", type=Path, default=DEB, help="Path to .deb")
+    ap.add_argument("-o", "--out", type=Path, default=DST, help="Output .ipa")
     args = ap.parse_args()
     DEB = args.deb
     DST = args.out

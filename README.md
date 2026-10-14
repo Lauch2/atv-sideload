@@ -1,6 +1,6 @@
 # atv-sideload
 
-Sideload iOS/tvOS apps (tested with Kodi) onto **Apple TV 4K** without jailbreak, using a free Apple ID for code signing.
+Sideload iOS/tvOS apps onto **Apple TV 4K** without jailbreak, using a free Apple ID for code signing.
 
 Runs entirely on Linux. Your Apple ID credentials are only ever sent to Apple via `plumesign` — this repository contains no secrets.
 
@@ -8,11 +8,11 @@ Runs entirely on Linux. Your Apple ID credentials are only ever sent to Apple vi
 
 ## How It Works
 
-1. **Convert** a tvOS `.deb` (e.g., Kodi build) → `.ipa` using `deb_to_ipa.py`
+1. **Convert** a tvOS `.deb` → `.ipa` using `deb_to_ipa.py`
 2. **Prepare** the Apple TV pairing record (`rp_pairing_file.plist`)
-3. **Sign & install** the IPA directly onto the Apple TV using `plumesign` via `install_kodi.sh`
+3. **Sign & install** the IPA directly onto the Apple TV using `plumesign` via `install_app.sh`
 
-A free Apple Developer account signature is valid for **7 days** — just re-run `install_kodi.sh` to renew.
+A free Apple Developer account signature is valid for **7 days** — just re-run `install_app.sh` to renew.
 
 ---
 
@@ -23,6 +23,7 @@ A free Apple Developer account signature is valid for **7 days** — just re-run
 - ✅ **App ID limit workaround** — auto-deletes oldest App ID when limit (10/7 days) is hit
 - ✅ **Config-driven** — all device/secrets in gitignored `config.env`
 - ✅ **Deb-to-IPA conversion** without `dpkg` (pure Python `ar` + `tar` parsing)
+- ✅ **Generic** — works with any tvOS `.deb` (Kodi, Infuse, etc.)
 
 ---
 
@@ -52,10 +53,10 @@ $EDITOR config.env   # Set ATV_HOST, ATV_UDID, TEAM_ID, BUNDLE_ID, APPLE_ID
 python3 atvconfig.py
 
 # 3) Convert tvOS .deb → .ipa
-python3 deb_to_ipa.py /path/to/kodi-21.3-tvos.deb -o kodi-tvos.ipa
+python3 deb_to_ipa.py /path/to/app-tvos.deb -o app-tvos.ipa
 
 # 4) Sign & install on Apple TV
-./install_kodi.sh
+./install_app.sh
 ```
 
 Output is also logged to `install.log`.
@@ -69,7 +70,7 @@ All machine-specific values live in `config.env` (gitignored):
 ```bash
 # Apple TV
 ATV_HOST=appletv.local          # or IP (e.g., 192.168.x.x)
-ATV_NAME=Wohnzimmer             # mDNS name for service discovery
+ATV_NAME=Living Room            # mDNS name for service discovery
 ATV_UDID=YOUR_UDID_HERE
 ATV_PAIRING_PORT=               # empty = auto-discover
 
@@ -88,13 +89,13 @@ Run `python3 atvconfig.py` to verify all values load correctly.
 | File | Purpose |
 |------|---------|
 | `atvconfig.py` | Central config loader; reads `config.env`, sets vendor `sys.path` |
-| `install_kodi.sh` | Main entrypoint: login check → port discovery → `plumesign sign-rsd` → install + App ID fallback |
+| `install_app.sh` | Main entrypoint: login check → port discovery → `plumesign sign-rsd` → install + App ID fallback |
 | `deb_to_ipa.py` | Extract `.app` from tvOS `.deb` → package as `.ipa` (no `dpkg` needed) |
 | `scan_*.py` | mDNS service discovery, port scanning, pairing ID lookup |
 | `atv_pair.py`, `atv_pair_manual.py` | **Experimental** — raw pairing protocol (SRP, TLS) — incomplete |
 | `debug_pair.py`, `probe*.py` | **Experimental** — protocol/port debugging utilities |
 
-> **Note:** The experimental pairing scripts (`atv_pair.py` etc.) are reference implementations for protocol exploration. They do **not** perform a complete pairing (TLS/M1/M2 verification missing). The working path is `install_kodi.sh` → `plumesign`.
+> **Note:** The experimental pairing scripts (`atv_pair.py` etc.) are reference implementations for protocol exploration. They do **not** perform a complete pairing (TLS/M1/M2 verification missing). The working path is `install_app.sh` → `plumesign`.
 
 ---
 
@@ -114,7 +115,7 @@ Run `python3 atvconfig.py` to verify all values load correctly.
 ```
 atv-sideload/
 ├── atvconfig.py              # Config loader
-├── install_kodi.sh           # Main install script
+├── install_app.sh            # Main install script
 ├── deb_to_ipa.py             # .deb → .ipa converter
 ├── config.example.env        # Config template
 ├── config.env                # Your config (gitignored)

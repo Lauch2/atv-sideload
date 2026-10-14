@@ -1,72 +1,58 @@
-# Projektnotizen — Apple-TV-Sideloading
+# Project Notes — Apple TV Sideloading
 
-Gesammelte Erkenntnisse aus der Einrichtung. Keine Zugangsdaten hier ablegen.
+Collected findings from setup. No credentials stored here.
 
-## Ausgangslage
+## Background
 
-- Ziel: Kodi (tvOS-Build) ohne Jailbreak auf einen Apple TV 4K 1. Generation
-  sideloaden, signiert mit einem kostenlosen Apple-ID-Account.
-- Signatur eines kostenlosen Accounts ist **7 Tage** gültig; danach muss neu
-  signiert werden (Skript einfach erneut ausführen).
-- Apple-ID: bewusst ein ungenutzter Zweitaccount — so bleibt das App-ID-Limit
-  des Hauptaccounts unberührt.
+- Goal: Sideload any tvOS app (e.g., Kodi, Infuse) onto Apple TV 4K without jailbreak, signed with a free Apple ID.
+- Free account signature is valid for **7 days** — re-run script to re-sign.
+- Use a dedicated secondary Apple ID — keeps the App ID limit off your main account.
 
-## Was funktioniert hat
+## What Works
 
-Signieren und Installieren über `plumesign` (getestet mit 2.2.2):
+Signing and installing via `plumesign` (tested with 2.2.2):
 
 ```
 plumesign sign-rsd --apple-id --register-and-install \
   --udid <UDID> --ip <TV-IP> --port <PAIRING-PORT> \
   --pairing-file rp_pairing_file.plist \
-  --package kodi-tvos.ipa \
+  --package app-tvos.ipa \
   --custom-identifier <BUNDLE-ID>
 ```
 
-Wichtig dabei:
+Key points:
 
-- `--port` ist der **Pairing-Port**, nicht 7000. Er wechselt bei jedem
-  Pairing-Vorgang und muss per mDNS ermittelt werden.
-- Der Apple TV veröffentlicht den Dienst erst, wenn am Gerät
-  *Einstellungen → Fernbedienungen & Geräte → Remote-App und Geräte* offen
-  ist. Sonst findet `avahi-browse` nichts.
-- Passender mDNS-Dienst: `_remotepairing-manual-pairing._tcp`
-  (Fallback für bereits gepairte Geräte: `_remotepairing._tcp`).
-- `rp_pairing_file.plist` enthält private Schlüssel → niemals committen.
+- `--port` is the **pairing port**, not 7000. It changes per pairing and must be discovered via mDNS.
+- Apple TV only publishes the service when **Settings → Remotes and Devices → Remote App and Devices** is open. Otherwise `avahi-browse` finds nothing.
+- Correct mDNS service: `_remotepairing-manual-pairing._tcp` (fallback for already-paired devices: `_remotepairing._tcp`).
+- `rp_pairing_file.plist` contains private keys — never commit.
 
-## Bekannte Fehler
+## Known Errors
 
-| Symptom | Bedeutung / Abhilfe |
+| Symptom | Meaning / Fix |
 |---|---|
-| `Error: unexpected response from device: missing port in createListener response` | Im Log vom ersten Durchlauf aufgetreten. Der TV war zu dem Zeitpunkt mit einem anderen Gerät bzw. in einem inkonsistenten Pairing-Zustand — Pairing am TV neu aufbauen und Port neu ermitteln. |
-| Kein Pairing-Dienst gefunden (8 Versuche) | Der TV zeigt den Dienst nur im Menü *Remote-App und Geräte*. |
-| Installation schlägt fehl, obwohl Login ok | App-ID-Limit des kostenlosen Accounts (10 IDs / 7 Tage). Das Skript löscht dann die älteste App-ID und versucht es erneut. |
+| `Error: unexpected response from device: missing port in createListener response` | TV was in inconsistent pairing state — re-open *Remote App and Devices* on TV, re-discover port. |
+| No pairing service found (8 attempts) | TV must be on the *Remote App and Devices* screen. |
+| Install fails despite valid login | Free tier App ID limit (10 IDs / 7 days). Script deletes oldest App ID and retries. |
 
 ## `.deb` → `.ipa`
 
-Die tvOS-Builds von Kodi liegen als Debian-Paket vor. `deb_to_ipa.py`
-extrahiert `data.tar.*` direkt aus dem ar-Archiv (kein `dpkg` nötig), packt die
-`.app` aus `Applications/` in `Payload/` und zippt das Ganze zur `.ipa`.
+tvOS builds (Kodi, Infuse, etc.) are distributed as Debian packages. `deb_to_ipa.py` extracts `data.tar.*` directly from the ar archive (no `dpkg` needed), pulls the `.app` from `Applications/` into `Payload/`, and zips to `.ipa`.
 
-## Experimentelle Skripte
+## Experimental Scripts
 
-`atv_pair.py`, `atv_pair_manual.py`, `debug_pair.py`, `probe*.py` und
-`scan_*.py` dokumentieren die Erkundung des Pairing-Protokolls (AirPlay-Port
-7000, SRP-Beweis, Remote-Pairing ab Port 50100). Sie sind **nicht** der Weg,
-der zur fertigen Installation geführt hat — der läuft über `plumesign` — und
-`atv_pair.py` ist unvollständig (TLS-/M1/M2-Verifikation fehlt). Sie bleiben im
-Repo als Referenz für Protokoll-Debugging.
+`atv_pair.py`, `atv_pair_manual.py`, `debug_pair.py`, `probe*.py`, and `scan_*.py` document exploration of the pairing protocol (AirPlay port 7000, SRP proof, Remote Pairing from port 50100). They are **not** the path to a working install — that's `plumesign` — and `atv_pair.py` is incomplete (missing TLS/M1/M2 verification). Kept as protocol debugging reference.
 
-## Nützliche Kommandos
+## Useful Commands
 
 ```bash
-# Alle pairing-relevanten mDNS-Dienste des TV auflisten
+# List all pairing-relevant mDNS services of the TV
 avahi-browse -rt _remotepairing._tcp
-avahi-browse -rt _remoted._tcp          # liefert auch die UDID
+avahi-browse -rt _remoted._tcp          # also yields UDID
 
-# Ports des TV prüfen
+# Check TV ports
 python3 scan_ports.py
 
-# Konfiguration anzeigen
+# Show configuration
 python3 atvconfig.py
 ```

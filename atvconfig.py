@@ -74,7 +74,7 @@ PLUMESIGN = path("PLUMESIGN", "bin/plumesign")
 PAIRING_FILE = path("PAIRING_FILE", "rp_pairing_file.plist")
 KEYS_DIR = path("KEYS_DIR", "keys")
 WORKDIR = path("WORKDIR", ".")
-IPA = path("IPA", "kodi-tvos.ipa")
+IPA = path("IPA", "app-tvos.ipa")
 
 # --- Vendor-Site-Packages (venv im Repo, siehe README) ---
 VENDOR_SITE = path(

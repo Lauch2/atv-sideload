@@ -24,8 +24,8 @@ cargo/
 *.dylib
 *.tar.gz
 *.zip
-kodi-deb-extract/
-kodi-ipa-stage/
+app-deb-extract/
+app-ipa-stage/
 tmp/
 out/
 orig/
