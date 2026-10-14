@@ -134,4 +134,4 @@ atv-sideload/
 
 ## License
 
-Private project — no license granted.
+MIT License — see [LICENSE](LICENSE) for details.
