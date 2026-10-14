@@ -68,15 +68,15 @@ All machine-specific values live in `config.env` (gitignored):
 
 ```bash
 # Apple TV
-ATV_HOST=appletv.local          # or IP (e.g., 192.168.178.26)
+ATV_HOST=appletv.local          # or IP (e.g., 192.168.x.x)
 ATV_NAME=Wohnzimmer             # mDNS name for service discovery
-ATV_UDID=db65fec03314113988bea70efa285f38a679331d
+ATV_UDID=YOUR_UDID_HERE
 ATV_PAIRING_PORT=               # empty = auto-discover
 
 # Apple Developer (free tier)
-TEAM_ID=2X22GQKCJ8
-BUNDLE_ID=com.kdt.LiveContainer2.2X22GQKCJ8
-APPLE_ID=your-ununsed-apple-id@example.com
+TEAM_ID=YOUR_TEAM_ID
+BUNDLE_ID=com.example.yourbundle
+APPLE_ID=your-unused-apple-id@example.com
 ```
 
 Run `python3 atvconfig.py` to verify all values load correctly.
