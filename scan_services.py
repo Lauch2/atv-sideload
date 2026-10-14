@@ -20,7 +20,7 @@ async def dump(name, coro):
         items = await coro
         print(f"\n### {name}: {len(items)} gefunden")
         for it in items:
-            print("   hostname:", it.hostname, "| port:", it.port)
+            print("   instance:", it.instance, "| host:", it.host, "| port:", it.port)
             for a in it.addresses:
                 print("      addr:", a.full_ip)
             if getattr(it, "properties", None):

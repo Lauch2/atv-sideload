@@ -26,7 +26,7 @@ def show(items):
             subnet is not None and any(a.startswith(subnet) and a != ATV_IP for a in addrs)
         )
         props = dict(it.properties) if getattr(it, "properties", None) else {}
-        name = getattr(it, "host", "") or it.hostname
+        name = it.host or getattr(it, "instance", "")
         found.append((name, it.port, addrs, props))
     return found
 
